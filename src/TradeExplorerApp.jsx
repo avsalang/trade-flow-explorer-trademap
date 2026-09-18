@@ -2720,7 +2720,7 @@ export default function TradeExplorerApp() {
       }
     };
 
-    map.on("load", () => {
+    map.once("style.load", () => {
       syncLayers();
       setMapReady(true);
       setMapError("");
@@ -2798,7 +2798,6 @@ export default function TradeExplorerApp() {
         setSelectedEconomyIndex(economyIndex);
         setConnectionMode("all");
       });
-
     });
     map.on("styledata", syncLayers);
     map.on("error", (event) => {
