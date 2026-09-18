@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
+import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import {
   CartesianGrid,
   Line,
@@ -21,6 +22,8 @@ import {
   X,
 } from "lucide-react";
 import { financeExplorerMapStyle } from "./financeExplorerMapStyle";
+
+maplibregl.setWorkerUrl(maplibreWorkerUrl);
 
 const BASE_URL = import.meta.env.BASE_URL || "/";
 const DEFAULT_PRODUCT = "870380";
@@ -2720,7 +2723,7 @@ export default function TradeExplorerApp() {
       }
     };
 
-    map.once("style.load", () => {
+    map.on("load", () => {
       syncLayers();
       setMapReady(true);
       setMapError("");
