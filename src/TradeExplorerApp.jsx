@@ -2798,6 +2798,7 @@ export default function TradeExplorerApp() {
         setSelectedEconomyIndex(economyIndex);
         setConnectionMode("all");
       });
+
     });
     map.on("styledata", syncLayers);
     map.on("error", (event) => {
