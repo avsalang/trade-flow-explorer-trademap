@@ -1,0 +1,33 @@
+# Local source data and generated outputs
+outputs/
+private/
+source-data/
+*.xlsx
+*.xls
+*.csv
+*.csv.gz
+
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+*api-key*
+*secret*
+
+# Local planning and development records
+.codex-local/
+docs/
+*.md
+
+# Dependencies and build artifacts
+node_modules/
+dist/
+coverage/
+__pycache__/
+*.pyc
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
