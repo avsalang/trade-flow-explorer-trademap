@@ -18,6 +18,7 @@ source-data/
 .codex-local/
 docs/
 *.md
+.worktrees/
 
 # Dependencies and build artifacts
 node_modules/
