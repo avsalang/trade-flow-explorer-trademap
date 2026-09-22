@@ -1544,7 +1544,7 @@ function RouteDetail({ route, productLabel, reportingMode, year, onClose }) {
       <div className="detail-scroll">
         <div className="route-value-block">
           <span>
-            {reportingMode === "exports" ? "Export" : "Import"} value reported by {reportingMode === "exports" ? route.supplierName : route.importerName}
+            Reported by {reportingMode === "exports" ? route.supplierName : route.importerName} as an {reportingMode === "exports" ? "export" : "import"}
           </span>
           <strong>{formatDetailedUsd(route.value)}</strong>
           <small>{route.basisLabel}</small>
@@ -2659,7 +2659,10 @@ export default function TradeExplorerApp() {
         .map((economy, economyIndex) => ({ ...economy, economyIndex }))
         .filter(
           (economy) =>
-            economy.name !== "World" && economy.iso3 && !isSpecialEconomy(economy),
+            economy.reporter &&
+            economy.name !== "World" &&
+            economy.iso3 &&
+            !isSpecialEconomy(economy),
         )
         .sort((left, right) => left.name.localeCompare(right.name)),
     [dataset],
@@ -2740,7 +2743,7 @@ export default function TradeExplorerApp() {
               <div class="map-popup__dot" style="background:#2563eb"></div>
               <div>
                 <strong>${escapeHtml(props.supplier)} → ${escapeHtml(props.importer)}</strong>
-                <span>Reported by the ${reportingModeRef.current === "exports" ? "exporting" : "importing"} economy</span>
+                <span>Reported by ${escapeHtml(reportingModeRef.current === "exports" ? props.supplier : props.importer)} as an ${reportingModeRef.current === "exports" ? "export" : "import"}</span>
                 <p>${escapeHtml(formatUsdThousand(Number(props.value), 2))}</p>
               </div>
             </div>`,
@@ -2988,7 +2991,7 @@ export default function TradeExplorerApp() {
             <span>
               <strong>Filters</strong>
               <small>
-                {selectedProductLabel} · {reportingMode === "exports" ? "Exports" : "Imports"} · {analysisView === "snapshot" ? year : `${trendStartYear}–${trendEndYear}`} · {countryEconomy?.name || "All Asia-Pacific economies"}
+                {selectedProductLabel} · {reportingMode === "exports" ? "Exporter-reported" : "Importer-reported"} · {analysisView === "snapshot" ? year : `${trendStartYear}–${trendEndYear}`} · {countryEconomy?.name || "All Asia-Pacific reporters"}
               </small>
             </span>
             <ChevronDown size={16} />
@@ -3005,7 +3008,7 @@ export default function TradeExplorerApp() {
           />
 
           <label className="select-wrap select-wrap--country">
-            <span>Economy</span>
+            <span>Reporting economy</span>
             <select
               value={countryEconomyIndex ?? ""}
               onChange={(event) => {
@@ -3015,9 +3018,9 @@ export default function TradeExplorerApp() {
                 setSelectedEconomyIndex(null);
                 setConnectionMode("all");
               }}
-              aria-label="Economy"
+              aria-label="Reporting economy"
             >
-              <option value="">All Asia-Pacific economies</option>
+              <option value="">All Asia-Pacific reporters</option>
               {countryOptions.map((economy) => (
                 <option key={economy.economyIndex} value={economy.economyIndex}>
                   {economy.name}
@@ -3027,8 +3030,8 @@ export default function TradeExplorerApp() {
             <ChevronDown size={15} />
           </label>
 
-          <div className="reporting-mode-filter" aria-label="Trade flow">
-              <span>Trade flow</span>
+          <div className="reporting-mode-filter" aria-label="Reported by">
+              <span>Reported by</span>
               <div>
                 <Segment
                   active={reportingMode === "imports"}
@@ -3038,7 +3041,7 @@ export default function TradeExplorerApp() {
                     setSelectedEconomyIndex(null);
                   }}
                 >
-                  Imports
+                  Importer
                 </Segment>
                 <Segment
                   active={reportingMode === "exports"}
@@ -3048,7 +3051,7 @@ export default function TradeExplorerApp() {
                     setSelectedEconomyIndex(null);
                   }}
                 >
-                  Exports
+                  Exporter
                 </Segment>
               </div>
           </div>
@@ -3207,19 +3210,19 @@ export default function TradeExplorerApp() {
             <div>
               <h1>
                 {countryEconomy ? `${countryEconomy.name} · ` : ""}
-                {`${reportingMode === "exports" ? "Export" : "Import"} ${
+                {`${reportingMode === "exports" ? "Exporter" : "Importer"}-reported ${
                   analysisView === "snapshot" ? "trade snapshot" : "trends"
                 }`}
               </h1>
               {analysisView === "snapshot" ? (
                 <p>
                   {selectedProductLabel} · {year} · {countryEconomy
-                    ? `${countryEconomy.name} as the reporting economy`
-                    : `${analysis.reporters} Asia-Pacific reporting economies and worldwide partners`} · {mirrorCoverageText}
+                    ? `${countryEconomy.name} reporting`
+                    : `${analysis.reporters} reporting economies`} · {mirrorCoverageText} · Reporters: Asia-Pacific · Partners: Worldwide
                 </p>
               ) : (
                 <p>
-                  {selectedProductLabel} · {trendStartYear}–{trendEndYear}{countryEconomy ? ` · ${countryEconomy.name}` : " · economies with complete annual data"}
+                  {selectedProductLabel} · {trendStartYear}–{trendEndYear}{countryEconomy ? ` · ${countryEconomy.name} reporting` : " · economies with complete annual data"} · Reporters: Asia-Pacific · Partners: Worldwide
                 </p>
               )}
             </div>
@@ -3323,17 +3326,19 @@ export default function TradeExplorerApp() {
               </button>
               <span className="map-node-instruction">
                 {selectedEconomy
-                  ? "Reset the map to select another economy."
+                  ? selectedEconomy.reporter === false
+                    ? `${selectedEconomy.name} is included as a partner, not as a reporting economy. These routes use reports from Asia-Pacific economies. Reset the map to select another economy.`
+                    : "Reset the map to select another economy."
                   : "Click an economy to focus on its trade routes."}
               </span>
             </div>
             <div className="result-pill">
               {selectedEconomy
                 ? connectionMode === "imports"
-                  ? `${mapPayload.lines.features.length} imports to ${selectedEconomy.name}`
+                  ? `${mapPayload.lines.features.length} incoming routes to ${selectedEconomy.name} · Asia-Pacific reporters`
                   : connectionMode === "exports"
-                    ? `${mapPayload.lines.features.length} exports from ${selectedEconomy.name}`
-                    : `${mapPayload.lines.features.length} routes for ${selectedEconomy.name}`
+                    ? `${mapPayload.lines.features.length} outgoing routes from ${selectedEconomy.name} · Asia-Pacific reporters`
+                    : `${mapPayload.lines.features.length} routes involving ${selectedEconomy.name} · Asia-Pacific reporters`
                 : `${mapPayload.lines.features.length} routes shown`}
             </div>
             {selectedEconomy ? (
@@ -3341,12 +3346,12 @@ export default function TradeExplorerApp() {
                 className="connection-mode-filter"
                 aria-label={`Connections for ${selectedEconomy.name}`}
               >
-                <span>Connection type</span>
+                <span>Direction at {selectedEconomy.name}</span>
                 <div>
                   {[
                     ["all", "All", selectedConnections.all.length],
-                    ["imports", "Imports", selectedConnections.imports.length],
-                    ["exports", "Exports", selectedConnections.exports.length],
+                    ["imports", "Into", selectedConnections.imports.length],
+                    ["exports", "Out of", selectedConnections.exports.length],
                   ].map(([mode, label, count]) => (
                     <Segment
                       key={mode}
@@ -3366,11 +3371,11 @@ export default function TradeExplorerApp() {
                 <>
                   <span>
                     <i className="legend-line legend-line--import" />
-                    Imports to {selectedEconomy.name}
+                    Incoming routes to {selectedEconomy.name}
                   </span>
                   <span>
                     <i className="legend-line legend-line--export" />
-                    Exports from {selectedEconomy.name}
+                    Outgoing routes from {selectedEconomy.name}
                   </span>
                 </>
               ) : null}
@@ -3379,7 +3384,7 @@ export default function TradeExplorerApp() {
               <span><i className="legend-both" />Both roles</span>
               <small>
                 {selectedEconomy
-                  ? "Node size shows total trade. Blue routes are imports to the selected economy; orange routes are exports from it. Reset the map to select another economy."
+                  ? "Node size shows total trade. Blue routes enter the selected economy; orange routes leave it. Reset the map to select another economy."
                   : `Click an economy to show its routes. Node size shows total trade; line width shows the selected ${reportingMode === "exports" ? "export" : "import"} value.`}
               </small>
             </div>

@@ -59,9 +59,10 @@ export default function AboutPage() {
               Trade Flow Explorer values are drawn from ITC Trade Map and presented in
               current US dollars. A direct observation comes from the selected reporting
               economy. A mirror estimate is reconstructed from partner reports when a
-              direct observation is unavailable. Imports and exports remain separate
-              views and may differ because of valuation, timing, partner attribution,
-              transshipment and reporting practices. Missing observations are not zero.
+              direct observation is unavailable. Importer-reported and exporter-reported
+              views remain separate and may differ because of valuation, timing,
+              partner attribution, transshipment and reporting practices. Missing
+              observations are not zero.
             </p>
             <p>
               Headline totals, rankings, concentration measures and trends use the full
